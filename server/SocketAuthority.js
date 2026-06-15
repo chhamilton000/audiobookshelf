@@ -280,9 +280,13 @@ class SocketAuthority {
     let user = null
 
     let decodedKeyId = null
-    try { decodedKeyId = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).keyId } catch {}
-    const apiKey = decodedKeyId ? await Database.apiKeyModel.findOne({ where: { keyId: decodedKeyId } }).catch(() => null) : null
-    
+    try { decodedKeyId = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).keyId } catch (e) {
+      Logger.debug(`[SocketAuthority] Failed to decode token as API key: ${e.message}`)
+    }
+    Logger.debug(`[SocketAuthority] Socket auth - decodedKeyId: ${decodedKeyId}`)
+    const apiKey = decodedKeyId ? await Database.apiKeyModel.findOne({ where: { keyId: decodedKeyId } }).catch((e) => { Logger.debug(`[SocketAuthority] API key lookup failed: ${e.message}`); return null }) : null
+    Logger.debug(`[SocketAuthority] Socket auth - apiKey found: ${!!apiKey}`)
+
     if (apiKey) {
       user = await Database.userModel.getUserByIdOrOldId(apiKey.userId)
     } else {
