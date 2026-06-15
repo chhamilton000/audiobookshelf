@@ -572,6 +572,10 @@ export default {
     this.$eventBus.$on('play-queue-item', this.playQueueItem)
     this.$eventBus.$on('play-item', this.playLibraryItem)
     this.$eventBus.$on('pause-item', this.pauseItem)
+    if (this.$root.socket) {
+      this.$root.socket.on('play_pause', () => this.playerHandler.playPause())
+      this.$root.socket.on('seek_to', (data) => this.playerHandler.seek(data.time))
+    }
   },
   beforeDestroy() {
     this.$eventBus.$off('cast-session-active', this.castSessionActive)
@@ -580,6 +584,10 @@ export default {
     this.$eventBus.$off('play-queue-item', this.playQueueItem)
     this.$eventBus.$off('play-item', this.playLibraryItem)
     this.$eventBus.$off('pause-item', this.pauseItem)
+    if (this.$root.socket) {
+      this.$root.socket.off('play_pause')
+      this.$root.socket.off('seek_to')
+    }
   }
 }
 </script>

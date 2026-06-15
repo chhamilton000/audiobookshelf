@@ -214,6 +214,17 @@ class SocketAuthority {
           if (!client?.user) return
           this.clientEmitter(client.user.id, 'playback_state', data)
         })
+        // Playback control from reader
+        socket.on('play_pause', (data) => {
+          const client = this.clients[socket.id]
+          if (!client?.user) return
+          this.clientEmitter(client.user.id, 'play_pause', data)
+        })
+        socket.on('seek_to', (data) => {
+          const client = this.clients[socket.id]
+          if (!client?.user) return
+          this.clientEmitter(client.user.id, 'seek_to', data)
+        })
 
         // Sent automatically from socket.io clients
         socket.on('disconnect', (reason) => {
