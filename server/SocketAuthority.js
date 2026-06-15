@@ -275,17 +275,25 @@ class SocketAuthority {
   async authenticateSocket(socket, token) {
     // we don't use passport to authenticate the jwt we get over the socket connection.
     // it's easier to directly verify/decode it.
-    // TODO: Support API keys for web socket connections
-    const token_data = TokenManager.validateAccessToken(token)
 
-    if (!token_data?.userId) {
-      // Token invalid
-      Logger.error('Cannot validate socket - invalid token')
-      return socket.emit('auth_failed', { message: 'Invalid token' })
+    // Support API keys for web socket connections
+    let user = null
+
+    let decodedKeyId = null
+    try { decodedKeyId = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()).keyId } catch {}
+    const apiKey = decodedKeyId ? await Database.apiKeyModel.findOne({ where: { keyId: decodedKeyId } }).catch(() => null) : null
+    
+    if (apiKey) {
+      user = await Database.userModel.getUserByIdOrOldId(apiKey.userId)
+    } else {
+      const token_data = TokenManager.validateAccessToken(token)
+      if (!token_data?.userId) {
+        Logger.error('Cannot validate socket - invalid token')
+        return socket.emit('auth_failed', { message: 'Invalid token' })
+      }
+      user = await Database.userModel.getUserByIdOrOldId(token_data.userId)
     }
 
-    // get the user via the id from the decoded jwt.
-    const user = await Database.userModel.getUserByIdOrOldId(token_data.userId)
     if (!user) {
       // user not found
       Logger.error('Cannot validate socket - invalid token')
