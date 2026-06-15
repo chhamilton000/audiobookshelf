@@ -212,6 +212,13 @@ export default {
       this.isPlaying = isPlaying
       this.$store.commit('setIsPlaying', isPlaying)
       this.updateMediaSessionPlaybackState()
+      if (this.$root.socket) {
+        this.$root.socket.emit('playback_state', {
+          isPlaying,
+          currentTime: this.currentTime,
+          playbackRate: this.currentPlaybackRate || 1
+        })
+      }
     },
     setSleepTimer(time) {
       this.sleepTimerSet = true
@@ -291,6 +298,13 @@ export default {
     setPlaybackRate(playbackRate) {
       this.currentPlaybackRate = playbackRate
       this.playerHandler.setPlaybackRate(playbackRate)
+      if (this.$root.socket) {
+        this.$root.socket.emit('playback_state', {
+          isPlaying: this.isPlaying,
+          currentTime: this.currentTime,
+          playbackRate
+        })
+      }
     },
     seek(time) {
       this.playerHandler.seek(time)
@@ -304,9 +318,15 @@ export default {
       if (this.$refs.audioPlayer) {
         this.$refs.audioPlayer.setCurrentTime(time)
       }
-
       if (this.sleepTimerType === this.$constants.SleepTimerTypes.CHAPTER && this.sleepTimerSet) {
         this.checkChapterEnd()
+      }
+      if (this.$root.socket) {
+        this.$root.socket.emit('playback_state', {
+          isPlaying: this.isPlaying,
+          currentTime: time,
+          playbackRate: this.currentPlaybackRate || 1
+        })
       }
     },
     setDuration(duration) {

@@ -208,6 +208,12 @@ class SocketAuthority {
           Logger.addSocketListener(socket, level)
         })
         socket.on('remove_log_listener', () => Logger.removeSocketListener(socket.id))
+        // Playback state sync for read-along reader
+        socket.on('playback_state', (data) => {
+          const client = this.clients[socket.id]
+          if (!client?.user) return
+          this.clientEmitter(client.user.id, 'playback_state', data)
+        })
 
         // Sent automatically from socket.io clients
         socket.on('disconnect', (reason) => {
