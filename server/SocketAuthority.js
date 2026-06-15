@@ -284,7 +284,7 @@ class SocketAuthority {
       Logger.debug(`[SocketAuthority] Failed to decode token as API key: ${e.message}`)
     }
     Logger.debug(`[SocketAuthority] Socket auth - decodedKeyId: ${decodedKeyId}`)
-    const apiKey = decodedKeyId ? await Database.apiKeyModel.findOne({ where: { keyId: decodedKeyId } }).catch((e) => { Logger.debug(`[SocketAuthority] API key lookup failed: ${e.message}`); return null }) : null
+    const apiKey = decodedKeyId ? await Database.apiKeyModel.findOne({ where: { id: decodedKeyId } }).catch(() => null) : null
     Logger.debug(`[SocketAuthority] Socket auth - apiKey found: ${!!apiKey}`)
 
     if (apiKey) {
